@@ -642,6 +642,36 @@ describe('loggers', () => {
         }),
       });
     });
+
+    it('should not include response_text in log record when logPrompts is disabled', () => {
+      const mockConfigNoPrompts = {
+        getSessionId: () => 'test-session-id',
+        getTargetDir: () => 'target-dir',
+        getUsageStatisticsEnabled: () => true,
+        getTelemetryEnabled: () => true,
+        getTelemetryLogPromptsEnabled: () => false,
+        getTelemetryTracesEnabled: () => false,
+        isInteractive: () => false,
+        getExperiments: () => undefined,
+        getExperimentsAsync: async () => undefined,
+        getContentGeneratorConfig: () => undefined,
+      } as unknown as Config;
+
+      const event = new ApiResponseEvent(
+        'test-model',
+        100,
+        { prompt_id: 'prompt-id-noprompts', contents: [] },
+        { candidates: [] },
+        AuthType.LOGIN_WITH_GOOGLE,
+        undefined,
+        'this response text should be hidden',
+      );
+
+      logApiResponse(mockConfigNoPrompts, event);
+
+      const standardLogCall = mockLogger.emit.mock.calls[0][0];
+      expect(standardLogCall.attributes['response_text']).toBeUndefined();
+    });
   });
 
   describe('logApiError', () => {
@@ -1058,6 +1088,11 @@ describe('loggers', () => {
 
       // Expect two calls to emit
       expect(mockLogger.emit).toHaveBeenCalledTimes(2);
+
+      // Get the arguments of the first (standard) log call
+      const standardLogCall = mockLogger.emit.mock.calls[0][0];
+      // Ensure request_text is NOT included in the standard log record
+      expect(standardLogCall.attributes['request_text']).toBeUndefined();
 
       // Get the arguments of the second (semantic) log call
       const semanticLogCall = mockLogger.emit.mock.calls[1][0];
