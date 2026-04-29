@@ -1425,16 +1425,20 @@ describe('loggers', () => {
           error_type: undefined,
           mcp_server_name: undefined,
           extension_id: undefined,
-          metadata: {
-            model_added_lines: 1,
-            model_removed_lines: 2,
-            model_added_chars: 3,
-            model_removed_chars: 4,
-            user_added_lines: 5,
-            user_removed_lines: 6,
-            user_added_chars: 7,
-            user_removed_chars: 8,
-          },
+          metadata: JSON.stringify(
+            {
+              model_added_lines: 1,
+              model_removed_lines: 2,
+              model_added_chars: 3,
+              model_removed_chars: 4,
+              user_added_lines: 5,
+              user_removed_lines: 6,
+              user_added_chars: 7,
+              user_removed_chars: 8,
+            },
+            null,
+            2,
+          ),
           content_length: 13,
         },
       });
@@ -1507,12 +1511,16 @@ describe('loggers', () => {
         body: 'Tool call: ask_user. Decision: accept. Success: true. Duration: 100ms.',
         attributes: expect.objectContaining({
           function_name: 'ask_user',
-          metadata: expect.objectContaining({
-            ask_user: {
-              question_types: ['choice'],
-              dismissed: false,
+          metadata: JSON.stringify(
+            {
+              ask_user: {
+                question_types: ['choice'],
+                dismissed: false,
+              },
             },
-          }),
+            null,
+            2,
+          ),
         }),
       });
     });
