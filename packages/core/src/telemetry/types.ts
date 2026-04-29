@@ -231,6 +231,17 @@ export class UserPromptEvent implements BaseTelemetryEvent {
 }
 
 export const EVENT_TOOL_CALL = 'gemini_cli.tool_call';
+
+const TOOL_CALL_METADATA_SAFE_KEYS = [
+  'model_added_lines',
+  'model_removed_lines',
+  'model_added_chars',
+  'model_removed_chars',
+  'user_added_lines',
+  'user_removed_lines',
+  'user_added_chars',
+  'user_removed_chars',
+] as const;
 export class ToolCallEvent implements BaseTelemetryEvent {
   'event.name': 'tool_call';
   'event.timestamp': string;
@@ -371,20 +382,12 @@ export class ToolCallEvent implements BaseTelemetryEvent {
       attributes['function_args'] = safeJsonStringify(this.function_args, 2);
     }
     if (this.metadata) {
-      const safeKeys = [
-        'model_added_lines',
-        'model_removed_lines',
-        'model_added_chars',
-        'model_removed_chars',
-        'user_added_lines',
-        'user_removed_lines',
-        'user_added_chars',
-        'user_removed_chars',
-      ];
       const metadata = config.getTelemetryLogPromptsEnabled()
         ? this.metadata
         : Object.fromEntries(
-            Object.entries(this.metadata).filter(([k]) => safeKeys.includes(k)),
+            Object.entries(this.metadata).filter(([k]) =>
+              (TOOL_CALL_METADATA_SAFE_KEYS as readonly string[]).includes(k),
+            ),
           );
       if (Object.keys(metadata).length > 0) {
         attributes['metadata'] = safeJsonStringify(metadata, 2);
